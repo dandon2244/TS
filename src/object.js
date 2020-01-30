@@ -2,6 +2,7 @@ export default class object {
   constructor(game, pos, type, size, colour, subObjects = []) {
     this.position = pos;
     this.game = game;
+
     this.absPos = this.position;
     this.supe = null;
     this.type = type;
@@ -19,6 +20,7 @@ export default class object {
   finalInit() {
     this.trueSuper();
     if (this.supe == null) {
+      this.game.objects.push(this);
       this.subElements(this);
     }
   }
@@ -33,20 +35,30 @@ export default class object {
       this.subElements(obj.subObjects[x]);
     }
   }
+
   trueSuper() {
-    var supe = this;
-    var x = 0;
-    while (supe.supe != null) {
-      x++;
-      if (x > 5) {
-        break;
+    if (this.supe != null) {
+      var supe = this;
+      while (supe.supe != null) {
+        supe = supe.supe;
       }
-      supe = supe.supe;
+      this.supe = supe;
     }
-    this.supe = supe;
   }
   render() {
     if (this.type == "RECT") {
+      this.game.context.fillStyle = this.colour;
+      this.game.context.fillRect(
+        this.absPos[0] - this.size[0] / 2 - this.game.camera.position[0],
+        this.absPos[1] - this.size[1] / 2 + this.game.camera.position[1],
+        this.size[0],
+        this.size[1]
+      );
     }
   }
+  move(vel) {
+    this.absPos[0] += vel[0] * this.game.DT;
+    this.absPos[1] += vel[1] * this.game.DT;
+  }
+  update() {}
 }

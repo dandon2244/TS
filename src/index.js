@@ -13,6 +13,7 @@ class Game {
     this.lastTime = 0;
     this.lastSec = 0;
     this.dt = 0;
+    this.objects = [];
     this.keyFunctions = {};
     this.keys = [];
     this.running = false;
@@ -102,15 +103,31 @@ class Game {
   }
 }
 var g = new Game();
-function gameLoop(timeStamp) {
+/** /function gameLoop(timeStamp) {
   g.update(timeStamp);
   requestAnimationFrame(gameLoop);
-}
+}**/
 //gameLoop();
-var j = new object(g, [1, 1], "RECT", [10, 10], "Random");
-var k = new object(g, [0, 1], "RECT", [10, 10], "Random", [j]);
-
-var i = new object(g, [0.1, 0.9], "RECT", [10, 10], "Random", [k]);
-k.trueSuper();
-j.trueSuper();
-i.subElements(i);
+var j = new object(g, [0, 20], "RECT", [10, 10], "blue");
+var k = new object(g, [10, 1], "RECT", [10, 10], "green", [j]);
+var i = new object(g, [20, 0.9], "RECT", [10, 10], "red", [k]);
+for (var x = 0; x < g.objects.length; x++) {
+  g.objects[x].finalInit();
+}
+g.keyFunctions["spacebar"] = function(TYPE, obj) {
+  if ((TYPE = "TAPPED")) {
+    //g.running = !g.running;
+    console.log(g.camera.position);
+  }
+};
+function gameLoop(timeStamp) {
+  g.updateDt();
+  g.context.fillStyle = "white";
+  g.context.fillRect(0, 0, g.canvas.width, g.canvas.height);
+  for (var x = 0; x < g.objects.length; x++) {
+    if (g.running) g.objects[x].move([6, 0]);
+    g.objects[x].render();
+  }
+  requestAnimationFrame(gameLoop);
+}
+gameLoop();
