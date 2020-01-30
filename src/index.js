@@ -1,63 +1,116 @@
 import Camera from "/src/Camera.js";
-import InputHandler from "./Input";
+import * as constants from "./constants.js";
+import Car from "./Car.js";
+import object from "/src/object.js";
 
-let canvas = document.getElementById("gameCanvas");
-let context = canvas.getContext("2d");
-let camera = new Camera([0.0, 0.0]);
-let cTime = 0;
-let lastTime = 0;
-let lastSec = 0;
-let dt = 0;
-let frames = 0;
-let position = 10;
+class Game {
+  constructor() {
+    this.canvas = document.getElementById("gameCanvas");
+    this.context = this.canvas.getContext("2d");
+    this.camera = new Camera([0.0, 0.0]);
+    this.frames = 0;
+    this.cTime = 0;
+    this.lastTime = 0;
+    this.lastSec = 0;
+    this.dt = 0;
+    this.keyFunctions = {};
+    this.keys = [];
+    this.running = false;
+    this.keyName = "";
+    this.car = new Car([10, 10]);
+    for (var x = 0; x < 257; x++) {
+      this.keys[x] = false;
+    }
+    var _this = this;
+    function keyDown(e) {
+      _this.keyDown(e);
+    }
+    function keyUp(e) {
+      _this.keys[e.keyCode] = false;
+    }
 
-let direction = 0;
-var keyState;
-keyState = {
-  down: {}, // True if key is down
-  toggle: {}, // toggles on key up
-  changed: {} // True if key state changes. Does not set back false
-  // or you will lose a change
-};
+    window.addEventListener("keydown", keyDown);
+    window.addEventListener("keyup", keyUp);
 
-function keyHandler(e) {
-  // simple but powerful
-  if (keyState.down[e.code] !== (e.type === "keydown")) {
-    keyState.changed = true;
+    this.setUpKeyFunctions();
   }
-  keyState.down[e.code] = e.type === "keydown";
-  if (e.type === "keyup") {
-    keyState.toggle[e.code] = !keyState.toggle[e.code];
+  keyDown(e) {
+    this.keyName = constants.keyCodes[e.keyCode];
+
+    if (!this.keys[e.keyCode]) {
+      if (this.keyFunctions[this.keyName]) {
+        this.keyFunctions[this.keyName]("TAPPED", this);
+      }
+    }
+    this.keys[e.keyCode] = true;
+  }
+
+  setUpKeyFunctions() {
+    this.keyFunctions["down arrow"] = function(type, obj) {
+      obj.camera.move(obj.dt, [0, -1]);
+    };
+    this.keyFunctions["spacebar"] = function(type, obj) {
+      if (type == "TAPPED") {
+        obj.running = !obj.running;
+      }
+    };
+
+    this.keyFunctions["up arrow"] = function(type, obj) {
+      obj.camera.move(obj.dt, [0, 1]);
+    };
+    this.keyFunctions["left arrow"] = function(type, obj) {
+      obj.camera.move(obj.dt, [-1, 0]);
+    };
+    this.keyFunctions["right arrow"] = function(type, obj) {
+      obj.camera.move(obj.dt, [1, 0]);
+    };
+  }
+  updateDt() {
+    this.frames++;
+    this.cTime = performance.now();
+    this.dt = this.cTime - this.lastTime;
+    this.DT = this.dt / 50;
+    this.lastTime = this.cTime;
+    if (this.lastSec == 0) {
+      this.lastSec = this.cTime;
+    }
+    if (this.cTime - this.lastSec > 1000) {
+      this.secondUpdate();
+      this.lastSec = this.cTime;
+      this.frames = 0;
+    }
+  }
+  secondUpdate() {
+    //console.log(this.frames);
+  }
+
+  update(timestamp) {
+    this.updateDt();
+
+    for (var x = 0; x < 257; x++) {
+      if (this.keys[x] && this.keyFunctions[constants.keyCodes[x]]) {
+        this.keyFunctions[constants.keyCodes[x]]("HELD", this);
+      }
+    }
+
+    this.context.fillStyle = "#fff8c7";
+    this.context.fillRect(0, 0, this.canvas.clientWidth, this.canvas.height);
+    if (this.running) {
+      this.car.update(this.DT);
+    }
+    this.car.render(this);
   }
 }
-document.addEventListener("keydown", keyHandler);
-document.addEventListener("keyup", keyHandler);
-//let inputHandle = new InputHandler(doSomething);
-
-function update(timestamp) {
-  //keyStates = inputHandle.getKeyStates();
-  frames++;
-  cTime = performance.now();
-  dt = cTime - lastTime;
-  lastTime = cTime;
-  if (lastSec == 0) {
-    lastSec = cTime;
-  }
-  if (keyState.down.LeftArrow) {
-    // && keyState.changed.LeftArrow) {
-    console.log("som");
-  }
-  //  keyState.changed.LeftArrow = false; // Clear it  so we can detect next change
-  if (cTime - lastSec > 1000) {
-    //console.log(frames);
-    lastSec = cTime;
-    frames = 0;
-  }
-
-  context.fillStyle = "#fff8c7";
-  context.fillRect(0, 0, canvas.clientWidth, canvas.height);
-  context.fillStyle = "blue";
-  context.fillRect(position - camera.pos[0], 10 - camera.pos[1], 50, 50);
-  requestAnimationFrame(update);
+var g = new Game();
+function gameLoop(timeStamp) {
+  g.update(timeStamp);
+  requestAnimationFrame(gameLoop);
 }
-update();
+//gameLoop();
+var j = new object(g, [1, 1], "RECT", [10, 10], "Random");
+var k = new object(g, [0, 1], "RECT", [10, 10], "Random", [j]);
+
+var i = new object(g, [0.1, 0.9], "RECT", [10, 10], "Random", [k]);
+k.trueSuper();
+j.trueSuper();
+i.subElements(i);
