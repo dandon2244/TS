@@ -8,6 +8,8 @@ class Game {
     this.canvas = document.getElementById("gameCanvas");
     this.context = this.canvas.getContext("2d");
     this.camera = new Camera([0.0, 0.0]);
+    this.objects = [];
+    this.suObjects = [];
     this.frames = 0;
     this.cTime = 0;
     this.lastTime = 0;
@@ -18,7 +20,6 @@ class Game {
     this.keys = [];
     this.running = false;
     this.keyName = "";
-    this.car = new Car([10, 10]);
     for (var x = 0; x < 257; x++) {
       this.keys[x] = false;
     }
@@ -108,24 +109,36 @@ var g = new Game();
   requestAnimationFrame(gameLoop);
 }**/
 //gameLoop();
-var j = new object(g, [0, 20], "RECT", [10, 10], "blue");
-var k = new object(g, [10, 1], "RECT", [10, 10], "green", [j]);
-var i = new object(g, [20, 0.9], "RECT", [10, 10], "red", [k]);
+
+var background = new object(
+  g,
+  [g.canvas.width / 2, g.canvas.height / 2, -1],
+  "RECT",
+  [g.canvas.width, g.canvas.height],
+  "purple"
+);
+
+var car = new Car([40, 50, 0], "blue", g);
+
 for (var x = 0; x < g.objects.length; x++) {
   g.objects[x].finalInit();
 }
-g.keyFunctions["spacebar"] = function(TYPE, obj) {
-  if ((TYPE = "TAPPED")) {
-    //g.running = !g.running;
-    console.log(g.camera.position);
-  }
-};
+
+g.setUpKeyFunctions();
 function gameLoop(timeStamp) {
+  background.setPosition([
+    g.canvas.width / 2 + g.camera.position[0],
+    g.canvas.height / 2 - g.camera.position[1],
+    -1
+  ]);
+  //g.objects.sort(function(a, b) {
+  //   return a.position[2] - b.position[2];
+  // });
   g.updateDt();
   g.context.fillStyle = "white";
   g.context.fillRect(0, 0, g.canvas.width, g.canvas.height);
+  if (g.running) car.move([0, 3]);
   for (var x = 0; x < g.objects.length; x++) {
-    if (g.running) g.objects[x].move([6, 0]);
     g.objects[x].render();
   }
   requestAnimationFrame(gameLoop);
