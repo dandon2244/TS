@@ -1,9 +1,12 @@
 export default class Camera {
-  constructor(pos) {
+  constructor(pos, game) {
+    this.game = game;
     this.position = pos;
+    this.centre = [game.canvas.width / 2, game.canvas.height / 2];
   }
-  move(dt, dir) {
-    this.position[0] += (dir[0] * dt) / 10;
-    this.position[1] += (dir[1] * dt) / 10;
+  move(dir) {
+    this.position[0] += dir[0] * this.game.DT;
+    this.position[1] += dir[1] * this.game.DT;
+    this.position[2] += dir[2] * this.game.DT;
   }
 }
