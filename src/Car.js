@@ -52,6 +52,7 @@ export default class Car {
       "green"
     );
     this.selectedFrame.transparency = 0.0;
+    //sc this.selectedFrame.rendering = false;
 
     this.frame.addSubObject(this.window);
     this.frame.addSubObject(this.selectedFrame);

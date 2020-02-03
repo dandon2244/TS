@@ -20,11 +20,16 @@ export default class object {
     this.subObjects = [];
     this.screenPos = [
       this.absPos[0] -
-        this.game.camera.position[0] -
+        this.game.camera.position[0] +
+        this.game.canvas.width * (1 - 1 / this.game.camera.position) -
         (this.game.canvas.width / this.game.camera.position[2] -
           this.game.canvas.width) /
           2,
-      this.absPos[1] / this.game.camera.position[2]
+      this.absPos[1] +
+        this.game.camera.position[1] -
+        (this.game.canvas.height / this.game.camera.position[2] -
+          this.game.canvas.height) /
+          2
     ];
     this.screenSize = [
       this.size[0] / this.game.camera.position[2],
@@ -106,6 +111,9 @@ export default class object {
     ];
     if (this.rendering) {
       if (typeof this.transparency != "undefined") {
+        if (this.transparency == 0) {
+          return;
+        }
         this.game.context.globalAlpha = this.transparency;
       } else {
         this.game.context.globalAlpha = 1;

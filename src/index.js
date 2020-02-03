@@ -15,8 +15,9 @@ class Game {
   constructor() {
     this.mousePos = [0, 0];
     this.canvas = document.getElementById("gameCanvas");
+    this.canvas.style.cursor = "url('GreenCursor.png'),auto";
     this.context = this.canvas.getContext("2d");
-    this.camera = new Camera([0.0, 0.0, 1], this);
+    this.camera = new Camera([0.0, 0.0, 2], this);
     this.objects = [];
     this.suObjects = [];
     this.frames = 0;
@@ -31,7 +32,7 @@ class Game {
     this.running = false;
     this.keyName = "";
 
-    this.car = new Car([100, 100, 1], "purple", this);
+    this.car = new Car([0, 0, 1], "purple", this);
     this.car.setLeftLight(true);
     this.lastPosition = this.car.frame.gamePos.slice();
     for (var x = 0; x < 257; x++) {
@@ -64,14 +65,16 @@ class Game {
       const rect = _this.canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-
+      //  console.log(_this.canvas.style.cursor);
+      if (_this.canvas.style.cursor != "auto") {
+        _this.canvas.style.cursor = "auto";
+      } else _this.canvas.style.cursor = "url('GreenCursor.png'),auto";
       if ((x >= 0) & (y >= 0)) {
-        // console.log(_this.car.frame.screenPos);
         if (_this.car.frame.pointWithinRender(x, y)) {
           if (_this.car.selectedFrame.transparency == 0) {
             _this.car.selectedFrame.transparency = 0.7;
           } else {
-            _this.car.selectedFrame.transparency = 0;
+            _this.car.selectedFrame.transparency = 0.0;
           }
         }
       }
@@ -113,7 +116,7 @@ class Game {
     };
     this.keyFunctions["s"] = function(type, obj) {
       if (type == "TAPPED") {
-        console.log(obj.car.frame.screenPos[0]);
+        console.log(obj.camera.screenToGamePos(0, 0));
       }
     };
     this.keyFunctions["i"] = function(type, obj) {
@@ -149,19 +152,20 @@ class Game {
     }
   }
   secondUpdate() {
-    console.log(this.mousePos);
+    //console.log(this.camera.gameToScreenPos(0,0));
   }
 
   update(timestamp) {
     this.updateDt();
+    g.context.fillStyle = "#fcf2d2";
+    g.context.fillRect(0, 0, g.canvas.width, g.canvas.height);
     if (this.running) {
       this.car.update();
       for (var x = 0; x < this.objects.length; x++) {
         this.objects[x].update();
       }
     }
-    g.context.fillStyle = "#fcf2d2";
-    g.context.fillRect(0, 0, g.canvas.width, g.canvas.height);
+
     for (var x = 0; x < this.objects.length; x++) {
       this.objects[x].render();
     }
