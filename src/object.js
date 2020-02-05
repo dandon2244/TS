@@ -44,7 +44,6 @@ export default class object {
     }
   }
   finalInit() {
-    this.trueSuper();
     if (this.supe == null) {
       this.game.suObjects.push(this);
       this.subElements(this);
@@ -70,15 +69,6 @@ export default class object {
     }
   }
 
-  trueSuper() {
-    if (this.supe != null) {
-      var supe = this;
-      while (supe.supe != null) {
-        supe = supe.supe;
-      }
-      this.supe = supe;
-    }
-  }
   setAllRendering(val) {
     this.rendering = val;
     for (var x = 0; x < this.subObjects.length; x++) {
@@ -88,7 +78,6 @@ export default class object {
   addSubObject(obj) {
     this.subObjects.push(obj);
     obj.supe = this;
-    obj.trueSuper();
     this.subElements(this);
   }
   pointWithin() {}
@@ -135,32 +124,20 @@ export default class object {
       }
 
       this.game.context.save();
-      this.game.context.translate(
-        x - this.game.camera.position[0] - (newWidth - width) / 2,
-        y + this.game.camera.position[1] - (newHeight - height) / 2
-      );
-      this.game.context.rotate(this.angle, false);
-      this.game.context.scale(1 / z, 1 / z);
 
       if (this.type == "RECT") {
+        var nx = this.absPos[0] - this.game.camera.position[0];
+        this.log = nx;
+        //nx = nx + (250 - nx) * (1 - 1 / z);
+
         this.game.context.fillStyle = this.colour;
-        var rx = -x + this.absPos[0] - this.size[0] / 2;
+        var rx = -nx + this.absPos[0] - this.size[0] / 2;
         var ry = -y + this.absPos[1] - this.size[1] / 2;
 
-        /* this.game.context.strokeStyle = this.colour;
-        this.game.context.beginPath();
-        this.game.context.moveTo(rx, ry);
-        this.game.context.lineTo(rx + this.size[0], ry);
-        this.game.context.lineTo(rx + this.size[0], ry + this.size[1]);
-        this.game.context.lineTo(rx, ry + this.size[1]);
-        this.game.context.fill();
-        this.game.context.closePath();*/
-        this.game.context.fillRect(
-          rx, // + (this.game.camera.centre[0] - rx) / z,
-          ry, //+ (this.game.camera.centre[1] - ry) / z,
-          this.size[0],
-          this.size[1]
-        );
+        this.game.context.translate(x, y + this.game.camera.position[1]);
+        this.game.context.rotate(this.angle);
+        //this.game.context.scale(1 / z, 1 / z);
+        this.game.context.fillRect(rx, ry, this.size[0] / z, this.size[1]);
       }
       if (this.type == "CIRCLE") {
         this.game.context.fillStyle = this.colour;

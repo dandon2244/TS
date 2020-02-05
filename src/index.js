@@ -2,22 +2,14 @@ import Camera from "/src/Camera.js";
 import * as constants from "./constants.js";
 import Car from "./Car.js";
 import object from "/src/object.js";
-
-function pausecomp(millis) {
-  var date = new Date();
-  var curDate = null;
-  do {
-    curDate = new Date();
-  } while (curDate - date < millis);
-}
-
+import newObject from "/src/newObjects.js";
 class Game {
   constructor() {
     this.mousePos = [0, 0];
     this.canvas = document.getElementById("gameCanvas");
     this.canvas.style.cursor = "url('GreenCursor.png'),auto";
     this.context = this.canvas.getContext("2d");
-    this.camera = new Camera([0.0, 0.0, 2], this);
+    this.camera = new Camera([0.0, 0.0, 0.8], this);
     this.objects = [];
     this.suObjects = [];
     this.frames = 0;
@@ -32,9 +24,9 @@ class Game {
     this.running = false;
     this.keyName = "";
 
-    this.car = new Car([0, 0, 1], "purple", this);
-    this.car.setLeftLight(true);
-    this.lastPosition = this.car.frame.gamePos.slice();
+    // this.car = new Car([100, 100, 1], "purple", this);
+    // this.car.setLeftLight(true);
+    // this.lastPosition = this.car.frame.gamePos.slice();
     for (var x = 0; x < 257; x++) {
       this.keys[x] = false;
     }
@@ -65,18 +57,18 @@ class Game {
       const rect = _this.canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      //  console.log(_this.canvas.style.cursor);
       if (_this.canvas.style.cursor != "auto") {
         _this.canvas.style.cursor = "auto";
       } else _this.canvas.style.cursor = "url('GreenCursor.png'),auto";
       if ((x >= 0) & (y >= 0)) {
-        if (_this.car.frame.pointWithinRender(x, y)) {
+        console.log(x, y);
+        /*if (_this.car.frame.pointWithinRender(x, y)) {
           if (_this.car.selectedFrame.transparency == 0) {
             _this.car.selectedFrame.transparency = 0.7;
           } else {
             _this.car.selectedFrame.transparency = 0.0;
           }
-        }
+        }*/
       }
     });
 
@@ -110,7 +102,17 @@ class Game {
     this.keyFunctions["l"] = function(type, obj) {
       if (type == "TAPPED") {
         for (var x = 0; x < obj.objects.length; x++) {
-          if (obj.objects[x].log) console.log(obj.objects[x].log);
+          if (obj.objects[x].log) {
+            switch (obj.objects[x].colour) {
+              case "purple":
+                console.log("Purple: ", obj.objects[x].log);
+                break;
+              case "red":
+                console.log("RED: ", obj.objects[x].log);
+                break;
+              default:
+            }
+          }
         }
       }
     };
@@ -160,7 +162,7 @@ class Game {
     g.context.fillStyle = "#fcf2d2";
     g.context.fillRect(0, 0, g.canvas.width, g.canvas.height);
     if (this.running) {
-      this.car.update();
+      //this.car.update();
       for (var x = 0; x < this.objects.length; x++) {
         this.objects[x].update();
       }
@@ -179,10 +181,20 @@ class Game {
     requestAnimationFrame(gameLoop);
   }
 }
+
 var g = new Game();
 
 g.setUpKeyFunctions();
-function gameLoop(timeStamp) {
+var gameLoop = function(timeStamp) {
   g.update();
-}
+};
+var n1 = new newObject(g, [50, 50], "RECT", [50, 50], "purple");
+var n2 = new newObject(g, [30, 0], "RECT", [20, 20], "orange");
+var n3 = new newObject(g, [200, 50], "RECT", [50, 50], "purple");
+var n4 = new newObject(g, [30, 0], "RECT", [20, 20], "orange");
+n3.addSubObject(n4);
+n3.rotateAll(45, n3.absPos, false);
+n1.addSubObject(n2);
+n1.rotateAll(45, n1.absPos, false);
+n2.rotate(-0, n2.absPos, false);
 gameLoop();
