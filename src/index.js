@@ -3,15 +3,18 @@ import * as constants from "./constants.js";
 import Car from "./Car.js";
 import object from "/src/object.js";
 import newObject from "/src/newObjects.js";
+import { genKeyFunctions } from "/src/Input.js";
+import Point from "/src/Point.js";
 class Game {
   constructor() {
-    this.mousePos = [0, 0];
-    this.mouseOff = [0, 0];
+    this.mousePos = new Point(0, 0);
     this.canvas = document.getElementById("gameCanvas");
     this.canvas.style.cursor = "url('GreenCursor.png'),auto";
     this.context = this.canvas.getContext("2d");
-    this.camera = new Camera([0.0, 0.0, 0.8], this);
+    this.camera = new Camera(new Point(0.0, 0.0, 0.8), this);
     this.objects = [];
+
+    // console.log(this.o.absPos);
     this.suObjects = [];
     this.frames = 0;
     this.cTime = 0;
@@ -24,9 +27,9 @@ class Game {
     this.keys = [];
     this.running = false;
     this.keyName = "";
-
-    this.cars = [new Car([100, 100, 1], "purple", this)];
-    this.cars.push(new Car([200, 100, 1], "purple", this));
+    this.cars = [];
+    this.cars = [new Car(new Point(100, 100, 1), "purple", this)];
+    this.cars.push(new Car(new Point(200, 100, 1), "purple", this));
 
     for (var x = 0; x < 257; x++) {
       this.keys[x] = false;
@@ -54,8 +57,8 @@ class Game {
           }
         }
 
-        _this.mousePos[0] = x;
-        _this.mousePos[1] = y;
+        _this.mousePos.x = x;
+        _this.mousePos.y = y;
       }
     });
     document.addEventListener("keyup", keyUp);
@@ -74,14 +77,14 @@ class Game {
         y <= _this.canvas.height
       ) {
         for (var i = 0; i < _this.cars.length; i++) {
-          if (_this.cars[i].frame.pointWithinRender([x, y])) {
+          if (_this.cars[i].frame.pointWithinRender(new Point(x, y))) {
             _this.cars[i].selected = !_this.cars[i].selected;
           }
         }
       }
     });
 
-    this.setUpKeyFunctions();
+    this.keyFunctions = genKeyFunctions();
   }
   keyDown(e) {
     this.keyName = constants.keyCodes[e.keyCode];
@@ -94,58 +97,6 @@ class Game {
     this.keys[e.keyCode] = true;
   }
 
-  setUpKeyFunctions() {
-    this.keyFunctions["down arrow"] = function(type, obj) {
-      obj.camera.move([0, -100, 0]);
-    };
-    this.keyFunctions["spacebar"] = function(type, obj) {
-      if (type == "TAPPED") {
-        obj.running = !obj.running;
-      }
-    };
-    this.keyFunctions["c"] = function(type, obj) {
-      if (type == "TAPPED") {
-        console.clear();
-      }
-    };
-    this.keyFunctions["l"] = function(type, obj) {
-      if (type == "TAPPED") {
-        for (var x = 0; x < obj.objects.length; x++) {
-          if (obj.objects[x].log) {
-            switch (obj.objects[x].colour) {
-              case "purple":
-                console.log("Purple: ", obj.objects[x].log);
-                break;
-              case "red":
-                console.log("RED: ", obj.objeccts[x].log);
-                break;
-              default:
-            }
-          }
-        }
-      }
-    };
-    this.keyFunctions["s"] = function(type, obj) {
-      if (type == "TAPPED") {
-      }
-    };
-    this.keyFunctions["i"] = function(type, obj) {
-      obj.camera.move([0, 0, 1]);
-    };
-    this.keyFunctions["k"] = function(type, obj) {
-      obj.camera.move([0, 0, -1]);
-    };
-
-    this.keyFunctions["up arrow"] = function(type, obj) {
-      obj.camera.move([0, 100, 0]);
-    };
-    this.keyFunctions["left arrow"] = function(type, obj) {
-      obj.camera.move([-200, 0, 0]);
-    };
-    this.keyFunctions["right arrow"] = function(type, obj) {
-      obj.camera.move([200, 0, 0]);
-    };
-  }
   updateDt() {
     this.frames++;
     this.cTime = performance.now();
@@ -161,14 +112,19 @@ class Game {
       this.frames = 0;
     }
   }
-  secondUpdate() {}
+  secondUpdate() {
+    // console.log(this.frames);
+  }
 
   update(timestamp) {
+    if (this.camera.position.z < 0.5) {
+      this.camera.position.z = 0.5;
+    }
     this.updateDt();
     g.context.fillStyle = "#fcf2d2";
     g.context.fillRect(0, 0, g.canvas.width, g.canvas.height);
     if (this.running) {
-      for (var i = 0; i < this.cas.length; i++) {
+      for (var i = 0; i < this.cars.length; i++) {
         this.cars[i].run();
       }
     }
@@ -195,7 +151,6 @@ class Game {
 
 var g = new Game();
 
-g.setUpKeyFunctions();
 var gameLoop = function(timeStamp) {
   g.update();
   requestAnimationFrame(gameLoop);

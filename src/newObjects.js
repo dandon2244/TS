@@ -1,4 +1,5 @@
-import { radians, rotatePoint } from "./lib.js";
+import { radians, rotatePoint, isColliding } from "./lib.js";
+import Point from "./Point.js";
 export default class newObject {
   constructor(game, relPos, type, size, colour, subObjects = []) {
     this.game = game;
@@ -19,13 +20,12 @@ export default class newObject {
       this.subObjects[x].supe = this;
     }
     this.screenPos = this.game.camera.gameToScreenPos(this.absPos);
-    var z = this.game.camera.position[2];
+    var z = this.game.camera.position.z;
     this.screenSize = [this.size[0] / z, this.size[1] / z];
   }
 
   move(vel, DT = true) {
-    this.absPos[0] += vel[0] * (DT ? this.game.DT : 1);
-    this.absPos[1] += vel[1] * (DT ? this.game.DT : 1);
+    this.absPos.move(vel.times(DT ? this.game.DT : 1));
   }
   moveAll(vel, DT = true) {
     this.move(vel, DT);
@@ -65,8 +65,7 @@ export default class newObject {
   subElements(obj) {
     for (var x = 0; x < obj.subObjects.length; x++) {
       if (!obj.subObjects[x].inited) {
-        obj.subObjects[x].absPos[0] += obj.absPos[0];
-        obj.subObjects[x].absPos[1] += obj.absPos[1];
+        obj.subObjects[x].absPos = obj.subObjects[x].absPos.add(obj.absPos);
         obj.subObjects[x].inited = true;
       }
       this.subElements(obj.subObjects[x]);
@@ -95,7 +94,7 @@ export default class newObject {
       return;
     }
     this.screenPos = this.game.camera.gameToScreenPos(this.absPos);
-    var z = this.game.camera.position[2];
+    var z = this.game.camera.position.z;
     this.screenSize = [this.size[0] / z, this.size[1] / z];
     if (typeof this.transparency != "undefined") {
       if (this.transparency <= 0) {
@@ -104,16 +103,16 @@ export default class newObject {
       this.game.context.globalAlpha = this.transparency;
     }
     if (this.type == "RECT") {
-      var w = this.game.canvas.width / 2;
-      var h = this.game.canvas.height / 2;
-      var z = this.game.camera.position[2];
+      var w = this.game.camera.centre.x;
+      var h = this.game.camera.centre.y;
+      var z = this.game.camera.position.z;
       var camPos = this.game.camera.position;
       this.game.context.save();
       this.game.context.translate(
-        this.absPos[0] / z + w * (1 - 1 / z) - camPos[0] / z,
-        this.absPos[1] / z + h * (1 - 1 / z) + camPos[1] / z
+        this.absPos.x / z + w * (1 - 1 / z) - camPos.x / z,
+        this.absPos.y / z + h * (1 - 1 / z) + camPos.y / z
       );
-      this.game.context.rotate((this.angle * Math.PI) / 180);
+      this.game.context.rotate(-(this.angle * Math.PI) / 180);
       this.game.context.fillStyle = this.colour;
       this.game.context.fillRect(
         -(this.size[0] / 2) / z,
@@ -125,18 +124,87 @@ export default class newObject {
     }
     this.game.context.globalAlpha = 1;
   }
-  update() {}
+  colliding(other) {
+    return isColliding(this, other);
+  }
+  update() {
+    if (this.angle > 360) {
+      this.angle -= 360;
+    }
+    if (this.angle < 0) {
+      this.angle += 360;
+    }
+  }
   pointWithinRender(pos) {
     if (this.type == "RECT") {
       var rotatedPoint = rotatePoint(-this.angle, this.screenPos, pos);
       if (
-        rotatedPoint[0] <= this.screenPos[0] + this.screenSize[0] / 2 &&
-        rotatedPoint[0] >= this.screenPos[0] - this.screenSize[0] / 2 &&
-        rotatedPoint[1] <= this.screenPos[1] + this.screenSize[1] / 2 &&
-        rotatedPoint[1] >= this.screenPos[1] - this.screenSize[1] / 2
+        rotatedPoint.x <= this.screenPos.x + this.screenSize[0] / 2 &&
+        rotatedPoint.x >= this.screenPos.x - this.screenSize[0] / 2 &&
+        rotatedPoint.y <= this.screenPos.y + this.screenSize[1] / 2 &&
+        rotatedPoint.y >= this.screenPos.y - this.screenSize[1] / 2
       ) {
         return true;
       } else return false;
+    }
+  }
+
+  getPoints() {
+    var points = [];
+    points.push(
+      //Top left corner
+      rotatePoint(
+        this.angle,
+        this.absPos,
+        new Point(
+          this.absPos.x - this.size[0] / 2,
+          this.absPos.y - this.size[1] / 2
+        )
+      )
+    );
+    points.push(
+      //bottom left corner
+      rotatePoint(
+        this.angle,
+        this.absPos,
+        new Point(
+          this.absPos.x - this.size[0] / 2,
+          this.absPos.y + this.size[1] / 2
+        )
+      )
+    );
+    points.push(
+      //top right corner
+      rotatePoint(
+        this.angle,
+        this.absPos,
+        new Point(
+          this.absPos.x + this.size[0] / 2,
+          this.absPos.y - this.size[1] / 2
+        )
+      )
+    );
+    points.push(
+      //bottom right corner
+      rotatePoint(
+        this.angle,
+        this.absPos,
+        new Point(
+          this.absPos.x + this.size[0] / 2,
+          this.absPos.y + this.size[1] / 2
+        )
+      )
+    );
+    return points;
+  }
+
+  delete() {
+    this.game.objects.splice(this.game.objects.indexOf(this), 1);
+  }
+  deleteAll() {
+    this.delete();
+    for (var x = 0; x < this.subObjects.length; x++) {
+      this.subObjects[x].deleteAll();
     }
   }
 }
