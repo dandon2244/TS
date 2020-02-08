@@ -6,6 +6,7 @@ import newObject from "/src/newObjects.js";
 class Game {
   constructor() {
     this.mousePos = [0, 0];
+    this.mouseOff = [0, 0];
     this.canvas = document.getElementById("gameCanvas");
     this.canvas.style.cursor = "url('GreenCursor.png'),auto";
     this.context = this.canvas.getContext("2d");
@@ -24,9 +25,9 @@ class Game {
     this.running = false;
     this.keyName = "";
 
-    // this.car = new Car([100, 100, 1], "purple", this);
-    // this.car.setLeftLight(true);
-    // this.lastPosition = this.car.frame.gamePos.slice();
+    this.cars = [new Car([100, 100, 1], "purple", this)];
+    this.cars.push(new Car([200, 100, 1], "purple", this));
+
     for (var x = 0; x < 257; x++) {
       this.keys[x] = false;
     }
@@ -47,6 +48,12 @@ class Game {
         x <= _this.canvas.width &&
         y <= _this.canvas.height
       ) {
+        for (var i = 0; i < _this.cars.length; i++) {
+          if (!_this.cars[i].frame.pointWithinRender(_this.mousePos)) {
+            _this.cars[i].selected = false;
+          }
+        }
+
         _this.mousePos[0] = x;
         _this.mousePos[1] = y;
       }
@@ -60,15 +67,17 @@ class Game {
       if (_this.canvas.style.cursor != "auto") {
         _this.canvas.style.cursor = "auto";
       } else _this.canvas.style.cursor = "url('GreenCursor.png'),auto";
-      if ((x >= 0) & (y >= 0)) {
-        console.log(x, y);
-        /*if (_this.car.frame.pointWithinRender(x, y)) {
-          if (_this.car.selectedFrame.transparency == 0) {
-            _this.car.selectedFrame.transparency = 0.7;
-          } else {
-            _this.car.selectedFrame.transparency = 0.0;
+      if (
+        x >= 0 &&
+        y >= 0 &&
+        x <= _this.canvas.width &&
+        y <= _this.canvas.height
+      ) {
+        for (var i = 0; i < _this.cars.length; i++) {
+          if (_this.cars[i].frame.pointWithinRender([x, y])) {
+            _this.cars[i].selected = !_this.cars[i].selected;
           }
-        }*/
+        }
       }
     });
 
@@ -108,7 +117,7 @@ class Game {
                 console.log("Purple: ", obj.objects[x].log);
                 break;
               case "red":
-                console.log("RED: ", obj.objects[x].log);
+                console.log("RED: ", obj.objeccts[x].log);
                 break;
               default:
             }
@@ -118,7 +127,6 @@ class Game {
     };
     this.keyFunctions["s"] = function(type, obj) {
       if (type == "TAPPED") {
-        console.log(obj.camera.screenToGamePos(0, 0));
       }
     };
     this.keyFunctions["i"] = function(type, obj) {
@@ -153,19 +161,24 @@ class Game {
       this.frames = 0;
     }
   }
-  secondUpdate() {
-    //console.log(this.camera.gameToScreenPos(0,0));
-  }
+  secondUpdate() {}
 
   update(timestamp) {
     this.updateDt();
     g.context.fillStyle = "#fcf2d2";
     g.context.fillRect(0, 0, g.canvas.width, g.canvas.height);
     if (this.running) {
-      //this.car.update();
-      for (var x = 0; x < this.objects.length; x++) {
-        this.objects[x].update();
+      for (var i = 0; i < this.cas.length; i++) {
+        this.cars[i].run();
       }
+    }
+
+    for (var i = 0; i < this.cars.length; i++) {
+      this.cars[i].update();
+    }
+
+    for (var x = 0; x < this.objects.length; x++) {
+      this.objects[x].update();
     }
 
     for (var x = 0; x < this.objects.length; x++) {
@@ -177,8 +190,6 @@ class Game {
         this.keyFunctions[constants.keyCodes[x]]("HELD", this);
       }
     }
-    //this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    requestAnimationFrame(gameLoop);
   }
 }
 
@@ -187,14 +198,7 @@ var g = new Game();
 g.setUpKeyFunctions();
 var gameLoop = function(timeStamp) {
   g.update();
+  requestAnimationFrame(gameLoop);
 };
-var n1 = new newObject(g, [50, 50], "RECT", [50, 50], "purple");
-var n2 = new newObject(g, [30, 0], "RECT", [20, 20], "orange");
-var n3 = new newObject(g, [200, 50], "RECT", [50, 50], "purple");
-var n4 = new newObject(g, [30, 0], "RECT", [20, 20], "orange");
-n3.addSubObject(n4);
-n3.rotateAll(45, n3.absPos, false);
-n1.addSubObject(n2);
-n1.rotateAll(45, n1.absPos, false);
-n2.rotate(-0, n2.absPos, false);
+
 gameLoop();

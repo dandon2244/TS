@@ -82,6 +82,7 @@ export default class object {
   }
   pointWithin() {}
   render() {
+    this.log = this.angle;
     this.screenSize = [
       this.size[0] / this.game.camera.position[2],
       this.size[1] / this.game.camera.position[2]

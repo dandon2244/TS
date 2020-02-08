@@ -1,10 +1,11 @@
-import object from "./object.js";
+import { default as object } from "./newObjects.js";
 
 export default class Car {
   constructor(position, colour, game) {
     this.selected = false;
     this.game = game;
-    this.position = position;
+    this.mouseOffset = [false, [0, 0]];
+    this.position = position.slice();
     this.colour = colour;
     this.angle = 0;
     this.speed = 1;
@@ -51,8 +52,8 @@ export default class Car {
       [this.frame.size[0], this.frame.size[1]],
       "green"
     );
-    this.selectedFrame.transparency = 0.0;
-    //sc this.selectedFrame.rendering = false;
+    this.selectedFrame.transparency = 0.7;
+    this.selectedFrame.rendering = false;
 
     this.frame.addSubObject(this.window);
     this.frame.addSubObject(this.selectedFrame);
@@ -68,31 +69,54 @@ export default class Car {
   setLeftLight(val) {
     this.leftLight = val;
   }
-  move(vec) {
-    this.frame.move(vec);
+  move(vec, DT = true) {
+    this.position[0] += vec[0] * (DT ? this.game.DT : 1);
+    this.position[1] += vec[1] * (DT ? this.game.DT : 1);
+    this.frame.moveAll(vec, DT);
   }
   rotate(angle, DT = true) {
     this.angle += angle * (DT ? this.game.DT : 1);
 
-    this.frame.rotate(angle, DT);
+    this.frame.rotateAll(angle, this.frame.absPos, DT);
   }
 
-  update(dt) {
-    if (!(this.angle <= -180 * (Math.PI / 180))) {
-      this.rotate(-3.1);
-    } else {
-      if (
-        this.angle <= -180 * (Math.PI / 180) &&
-        this.angle > -180.2 * (Math.PI / 180)
-      ) {
-        this.angle = -180 * (Math.PI / 180);
-        this.frame.setAngle(-180 * (Math.PI / 180));
+  update() {
+    if (this.selected) {
+      this.selectedFrame.rendering = true;
+      if (this.mouseOffset[0] == false) {
+        this.mouseOffset[1] = this.game.camera.screenToGamePos(
+          this.game.mousePos
+        );
+        this.mouseOffset[0] = true;
+        this.thisOff = [
+          this.mouseOffset[1][0] - this.position[0],
+          this.mouseOffset[1][1] - this.position[1]
+        ];
       }
-      if (this.angle < -180 * (Math.PI / 180)) {
-        this.rotate(0.1);
+      var target = this.game.camera.screenToGamePos(this.game.mousePos);
+      target[0] -= this.thisOff[0];
+      target[1] -= this.thisOff[1];
+      var dif = [target[0] - this.position[0], target[1] - this.position[1]];
+      this.move(dif, false);
+    } else {
+      this.mouseOffset[0] = false;
+      this.selectedFrame.rendering = false;
+    }
+    /*if (!(this.angle <= -180)) { 
+      this.rotate(-90.1);
+    } else {
+      if (this.angle <= -180 && this.angle > -180.2) {
+        this.angle = -180;
+      }
+      if (this.angle < -180) {
+        this.rotate(10);
       }
     }
-    this.move([100 * Math.cos(this.angle), 100 * Math.sin(this.angle)]);
+
+    this.frame.moveAll([
+      100 * Math.cos((this.angle * Math.PI) / 180),
+      100 * Math.sin((this.angle * Math.PI) / 180)
+    ]);*/
 
     if (this.leftLight) {
       this.leftHead.colour = "orange";
@@ -102,4 +126,5 @@ export default class Car {
       this.leftGlow.setAllRendering(false);
     }
   }
+  run() {}
 }

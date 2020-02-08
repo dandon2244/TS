@@ -9,26 +9,30 @@ export default class Camera {
     this.position[1] += dir[1] * this.game.DT;
     this.position[2] += dir[2] * this.game.DT;
   }
-  gameToScreenPos(x, y) {
-    var sx =
-      x -
-      this.position[0] +
-      (this.game.canvas.width * (1 - 1 / this.position[2])) / 2;
-    var sy =
-      y +
-      this.position[1] +
-      (this.game.canvas.height * (1 - 1 / this.position[2])) / 2;
-    return [sx, sy];
+  gameToScreenPos(pos) {
+    var z = this.position[2];
+
+    return [
+      pos[0] / z +
+        (this.game.canvas.width / 2) * (1 - 1 / z) -
+        this.position[0] / z,
+      pos[1] / z +
+        (this.game.canvas.height / 2) * (1 - 1 / z) +
+        this.position[1] / z
+    ];
   }
-  screenToGamePos(x, y) {
-    var gx =
-      x +
-      this.position[0] -
-      (this.game.canvas.width * (1 - 1 / this.position[2])) / 2;
-    var gy =
-      y -
-      this.position[1] -
-      (this.game.canvas.height * (1 - 1 / this.position[2])) / 2;
-    return [gx * this.position[2], gy * this.position[2]];
+  screenToGamePos(pos) {
+    var z = this.position[2];
+    var x =
+      (pos[0] +
+        this.position[0] / z -
+        (this.game.canvas.width / 2) * (1 - 1 / z)) *
+      z;
+    var y =
+      (pos[1] -
+        this.position[1] / z -
+        (this.game.canvas.height / 2) * (1 - 1 / z)) *
+      z;
+    return [x, y];
   }
 }
