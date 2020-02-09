@@ -1,5 +1,6 @@
 import * as constants from "./constants.js";
 import Vector from "/src/Vector.js";
+import Point from "./Point.js";
 export function genKeyFunctions() {
   let keyFunctions = {};
   keyFunctions["down arrow"] = function(type, obj) {
@@ -15,26 +16,16 @@ export function genKeyFunctions() {
       console.clear();
     }
   };
-  keyFunctions["l"] = function(type, obj) {
+  keyFunctions["r"] = function(type, obj) {
     if (type == "TAPPED") {
-      console.log(obj.cars[0].frame.colliding(obj.cars[1].frame));
-      for (var x = 0; x < obj.objects.length; x++) {
-        if (obj.objects[x].log) {
-          switch (obj.objects[x].colour) {
-            case "purple":
-              console.log("Purple: ", obj.objects[x].log);
-              break;
-            case "red":
-              //console.log("RED: ", obj.objects[x].log);
-              break;
-            default:
-          }
-        }
-      }
+      obj.cars[1].delete();
     }
   };
+
+  keyFunctions["l"] = function(type, obj) {};
   keyFunctions["s"] = function(type, obj) {
     if (type == "TAPPED") {
+      console.log(obj.cars[0].frame.collStates["frame"]);
     }
   };
   keyFunctions["i"] = function(type, obj) {

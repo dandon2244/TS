@@ -5,16 +5,16 @@ import object from "/src/object.js";
 import newObject from "/src/newObjects.js";
 import { genKeyFunctions } from "/src/Input.js";
 import Point from "/src/Point.js";
+import Map from "/src/Map.js";
 class Game {
   constructor() {
+    this.collisionPairs = { frame: ["frame"], hitbox: ["frame"] };
     this.mousePos = new Point(0, 0);
     this.canvas = document.getElementById("gameCanvas");
     this.canvas.style.cursor = "url('GreenCursor.png'),auto";
     this.context = this.canvas.getContext("2d");
-    this.camera = new Camera(new Point(0.0, 0.0, 0.8), this);
+    this.camera = new Camera(new Point(100.0, 0.0, 5.8), this);
     this.objects = [];
-
-    // console.log(this.o.absPos);
     this.suObjects = [];
     this.frames = 0;
     this.cTime = 0;
@@ -27,10 +27,22 @@ class Game {
     this.keys = [];
     this.running = false;
     this.keyName = "";
-    this.cars = [];
     this.cars = [new Car(new Point(100, 100, 1), "purple", this)];
-    this.cars.push(new Car(new Point(200, 100, 1), "purple", this));
+    for (var x = 0; x < 20; x++) {
+      this.cars.push(new Car(new Point(200 + x * 100, 100, 1), "purple", this));
+    }
+    for (var x = 0; x < 20; x++) {
+      this.cars.push(new Car(new Point(200 + x * 100, 200, 1), "purple", this));
+    }
+    for (var x = 0; x < 20; x++) {
+      this.cars.push(new Car(new Point(200 + x * 100, 300, 1), "purple", this));
+    }
+    for (var x = 0; x < 20; x++) {
+      this.cars.push(new Car(new Point(200 + x * 100, 400, 1), "purple", this));
+    }
 
+    this.map = new Map(this);
+    this.map.update();
     for (var x = 0; x < 257; x++) {
       this.keys[x] = false;
     }
@@ -78,7 +90,7 @@ class Game {
       ) {
         for (var i = 0; i < _this.cars.length; i++) {
           if (_this.cars[i].frame.pointWithinRender(new Point(x, y))) {
-            _this.cars[i].selected = !_this.cars[i].selected;
+            _this.cars[i].select(!_this.cars[i].selected);
           }
         }
       }
@@ -113,10 +125,14 @@ class Game {
     }
   }
   secondUpdate() {
-    // console.log(this.frames);
+    console.log(this.frames);
   }
 
   update(timestamp) {
+    this.objects.sort(function(a, b) {
+      return a.absPos.z - b.absPos.z;
+    });
+    this.map.update();
     if (this.camera.position.z < 0.5) {
       this.camera.position.z = 0.5;
     }

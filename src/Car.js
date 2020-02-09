@@ -3,7 +3,7 @@ import Point from "/src/Point.js";
 import Vector from "./Vector.js";
 
 export default class Car {
-  constructor(position, colour, game) {
+  constructor(position, colour, game, scale = 1) {
     this.selected = false;
     this.game = game;
     this.mouseOffset = [false, [0, 0]];
@@ -16,8 +16,19 @@ export default class Car {
       this.game,
       position.copy(),
       "RECT",
-      [60, 35],
-      this.colour
+      [60 * scale, 35 * scale],
+      this.colour,
+      "frame",
+      true
+    );
+    this.hitBox = new object(
+      game,
+      new Point(this.frame.size[0] / 2 + 30, 0),
+      "RECT",
+      [60, this.frame.size[1]],
+      "black",
+      "hitbox",
+      true
     );
     this.window = new object(
       game,
@@ -55,14 +66,14 @@ export default class Car {
     this.leftGlow = new object(game, new Point(0, 0));
     this.selectedFrame = new object(
       game,
-      new Point(0, 0, 5),
+      new Point(0, 0, 3),
       "RECT",
       [this.frame.size[0], this.frame.size[1]],
       "green"
     );
-    this.selectedFrame.transparency = 0.7;
+    this.selectedFrame.transparency = 0.9;
     this.selectedFrame.rendering = false;
-
+    this.frame.addSubObject(this.hitBox);
     this.frame.addSubObject(this.window);
     this.frame.addSubObject(this.selectedFrame);
     this.frame.addSubObject(this.leftHead);
@@ -103,7 +114,7 @@ export default class Car {
         this.mouseOffset[0] = true;
         this.thisOff = this.mouseOffset[1].minus(this.position);
       }
-      if (this.frame.colliding(this.game.cars[1].frame)) {
+      if (this.frame.collStates["frame"][0]) {
         this.selectedFrame.colour = "red";
       } else {
         this.selectedFrame.colour = "green";
@@ -111,7 +122,7 @@ export default class Car {
       var target = this.game.camera.screenToGamePos(this.game.mousePos);
       target = target.minus(this.thisOff);
       var dif = target.minus(this.position);
-
+      dif.z = 0;
       this.move(dif, false);
     } else {
       this.mouseOffset[0] = false;
@@ -141,8 +152,26 @@ export default class Car {
       this.leftGlow.setAllRendering(false);
     }
   }
+  select(val) {
+    if (!val == this.selected) {
+      this.selected = val;
+      if (val) {
+        this.move(new Vector(0, 0, 5), false);
+      } else {
+        this.move(new Vector(0, 0, -5), false);
+      }
+    }
+  }
   run() {
-    this.rotate(90);
+    if (this.position.x < 3000 && !this.frame.collStates["frame"][0]) {
+      this.move(
+        new Vector(
+          100 * Math.cos((this.angle * Math.PI) / 180),
+          100 * Math.sin((this.angle * Math.PI) / 180)
+        )
+      );
+    }
+    //this.rotate(90);
   }
   delete() {
     this.frame.deleteAll();

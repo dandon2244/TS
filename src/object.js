@@ -1,5 +1,5 @@
 export default class object {
-  constructor(game, pos, type, size, colour, subObjects = []) {
+  constructor(game, pos, type, size, colour, collider = false) {
     this.position = pos;
     this.game = game;
     this.angle = 0;
@@ -35,13 +35,6 @@ export default class object {
       this.size[0] / this.game.camera.position[2],
       this.size[1] / this.game.camera.position[2]
     ];
-
-    for (var x = 0; x < subObjects.length; x++) {
-      this.subObjects.push(subObjects[x]);
-    }
-    for (var x = 0; x < this.subObjects.length; x++) {
-      this.subObjects[x].supe = this;
-    }
   }
   finalInit() {
     if (this.supe == null) {
