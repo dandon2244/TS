@@ -119,12 +119,23 @@ export default class newObject {
       );
       this.game.context.rotate(-(this.angle * Math.PI) / 180);
       this.game.context.fillStyle = this.colour;
-      this.game.context.fillRect(
-        -(this.size[0] / 2) / z,
-        -this.size[1] / 2 / z,
-        this.size[0] / z,
-        this.size[1] / z
-      );
+      this.game.context.strokeStyle = this.colour;
+      if (this.size.length == 2) {
+        this.game.context.fillRect(
+          -(this.size[0] / 2) / z,
+          -this.size[1] / 2 / z,
+          this.size[0] / z,
+          this.size[1] / z
+        );
+      } else {
+        this.game.context.lineWidth = this.size[2] / z;
+        this.game.context.strokeRect(
+          -(this.size[0] / 2) / z,
+          -this.size[1] / 2 / z,
+          this.size[0] / z,
+          this.size[1] / z
+        );
+      }
       this.game.context.restore();
     }
     this.game.context.globalAlpha = 1;
@@ -150,7 +161,10 @@ export default class newObject {
       }
       for (var x = 0; x < this.blocks.length; x++) {
         for (var i = 0; i < this.blocks[x].objects.length; i++) {
-          if (this.blocks[x].objects[i] != this) {
+          if (
+            this.blocks[x].objects[i] != this &&
+            this.blocks[x].objects[i] != this.supe
+          ) {
             this.nearby.push(this.blocks[x].objects[i]);
           }
         }
@@ -158,10 +172,11 @@ export default class newObject {
       this.nearby = Array.from(new Set(this.nearby));
       //   console.log(this.nearby.length);
       for (var x = 0; x < this.nearby.length; x++) {
-        if (this.collisionTypes.includes(this.nearby[x].id)) {
-          if (this.colliding(this.nearby[x]))
-            this.collStates[this.nearby[x].id] = [true, this.nearby[x]];
-        }
+        if (this.nearby[x])
+          if (this.collisionTypes.includes(this.nearby[x].id)) {
+            if (this.colliding(this.nearby[x]))
+              this.collStates[this.nearby[x].id] = [true, this.nearby[x]];
+          }
       }
     }
   }

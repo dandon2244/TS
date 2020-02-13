@@ -25,11 +25,12 @@ export default class Car {
       game,
       new Point(this.frame.size[0] / 2 + 30, 0),
       "RECT",
-      [60, this.frame.size[1]],
-      "black",
+      [60, this.frame.size[1], 3],
+      "red",
       "hitbox",
       true
     );
+    this.hitBox.rendering = false;
     this.window = new object(
       game,
       new Point(this.frame.size[0] / 2 - 10, 0, 2),
@@ -163,13 +164,29 @@ export default class Car {
     }
   }
   run() {
-    if (this.position.x < 3000 && !this.frame.collStates["frame"][0]) {
-      this.move(
-        new Vector(
-          100 * Math.cos((this.angle * Math.PI) / 180),
-          100 * Math.sin((this.angle * Math.PI) / 180)
-        )
-      );
+    if (this.position.x < 3000) {
+    } else {
+      if (this.position.x > 3000) {
+        this.move(
+          new Vector(
+            -10 * Math.cos((-this.angle * Math.PI) / 180),
+            -10 * Math.sin((-this.angle * Math.PI) / 180)
+          )
+        );
+      }
+      if (this.angle < 90) {
+        this.rotate(90);
+      }
+    }
+    if (!this.hitBox.collStates["frame"][0]) {
+      if (this.position.y > -3000) {
+        this.move(
+          new Vector(
+            100 * Math.cos((-this.angle * Math.PI) / 180),
+            100 * Math.sin((-this.angle * Math.PI) / 180)
+          )
+        );
+      }
     }
     //this.rotate(90);
   }

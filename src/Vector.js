@@ -19,6 +19,29 @@ export default class Vector {
   times(n) {
     return new Vector(this.x * n, this.y * n, this.z);
   }
+  getAngle() {
+    if (this.x == 0) {
+      if (this.y == 0) {
+        return 0;
+      }
+      if (this.y > 0) {
+        return 90;
+      }
+      if (this.y < 0) {
+        return 360 - 90;
+      }
+    }
+    var angle = (180 / Math.PI) * Math.atan(this.y / this.x);
+    if (this.x > 0) {
+      return angle;
+    }
+    if (this.x < 0) {
+      if (this.y < 0) {
+        return angle - 180;
+      }
+      return angle + 180;
+    }
+  }
 
   toString() {
     return (

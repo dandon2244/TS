@@ -30,9 +30,46 @@ export default class Map {
     for (var x = 0; x < this.game.objects.length; x++) {
       if (this.game.objects[x].collider) {
         this.getBlocksIn(this.game.objects[x]);
-        // console.log(this.game.objects[x].blocks[0].gridPos);
       }
     }
+  }
+  camPos() {
+    var xValues = this.game.objects.map(o => o.absPos.x);
+    xValues = [].concat.apply([], xValues);
+    var yValues = this.game.objects.map(o => o.absPos.y);
+    yValues = [].concat.apply([], yValues);
+    var n = xValues.length;
+    var aX = 0;
+    var aY = 0;
+    for (var i = 0; i < n; i++) {
+      aX += xValues[i];
+      aY += yValues[i];
+    }
+    var hX = Math.max.apply(null, xValues);
+    var lX = Math.min.apply(null, xValues);
+    var hY = Math.max.apply(null, yValues);
+    var lY = Math.min.apply(null, yValues);
+    if (hX - lX > hY - lY) {
+      var range = hX - lX;
+      range = this.game.canvas.width / range;
+    } else {
+      var range = hY - lY;
+      range = this.game.canvas.height / range;
+    }
+
+    aX = aX / n;
+    aY = aY / n;
+
+    //var desired =
+
+    var pos = new Point(aX, aY);
+
+    pos.z = 1 / range;
+    // pos = new Point(0, 0);
+    pos.x -= this.game.camera.centre.x;
+    pos.y += this.game.camera.centre.y;
+
+    return pos;
   }
   getBlocksIn(obj) {
     obj.blocks = [];

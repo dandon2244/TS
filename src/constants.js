@@ -173,3 +173,8 @@ export const keyCodes = {
   251: "unlock trackpad (Chrome/Edge)",
   255: "toggle touchpad"
 };
+
+export const mouseModes = {
+  auto: "auto",
+  roadGreen: "url('GreenCursor.png'),auto"
+};

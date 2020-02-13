@@ -1,19 +1,26 @@
 import Camera from "/src/Camera.js";
 import * as constants from "./constants.js";
+import * as Input from "./Input";
 import Car from "./Car.js";
-import object from "/src/object.js";
-import newObject from "/src/newObjects.js";
-import { genKeyFunctions } from "/src/Input.js";
+import object from "./object.js";
+import newObject from "./newObjects.js";
 import Point from "/src/Point.js";
 import Map from "/src/Map.js";
+import Road from "./Road.js";
+import Vector from "./Vector.js";
 class Game {
   constructor() {
+    var vec = new Vector(-1, -1);
+    console.log(vec.getAngle());
+    this.mouseMode = "auto";
+    this.road = null;
     this.collisionPairs = { frame: ["frame"], hitbox: ["frame"] };
     this.mousePos = new Point(0, 0);
     this.canvas = document.getElementById("gameCanvas");
-    this.canvas.style.cursor = "url('GreenCursor.png'),auto";
+
     this.context = this.canvas.getContext("2d");
-    this.camera = new Camera(new Point(100.0, 0.0, 5.8), this);
+    this.camera = new Camera(new Point(0.0, 0.0, 0.8), this);
+    this.roads = [];
     this.objects = [];
     this.suObjects = [];
     this.frames = 0;
@@ -27,22 +34,21 @@ class Game {
     this.keys = [];
     this.running = false;
     this.keyName = "";
-    this.cars = [new Car(new Point(100, 100, 1), "purple", this)];
-    for (var x = 0; x < 20; x++) {
-      this.cars.push(new Car(new Point(200 + x * 100, 100, 1), "purple", this));
-    }
-    for (var x = 0; x < 20; x++) {
-      this.cars.push(new Car(new Point(200 + x * 100, 200, 1), "purple", this));
-    }
-    for (var x = 0; x < 20; x++) {
-      this.cars.push(new Car(new Point(200 + x * 100, 300, 1), "purple", this));
-    }
-    for (var x = 0; x < 20; x++) {
+    this.selected = null;
+    this.cars = [new Car(new Point(-200, 0, 1), "purple", this)];
+    var x = 0;
+    // for (var x = 0; x < 20; x++) {
+    this.cars.push(new Car(new Point(100 + x * 100, 0, 1), "purple", this));
+    //  }
+    /*  for (var x = 0; x < 20; x++) {
       this.cars.push(new Car(new Point(200 + x * 100, 400, 1), "purple", this));
-    }
+    }*/
 
     this.map = new Map(this);
     this.map.update();
+    this.camera.position = this.map.camPos();
+    //  this.camera.position.x = this.cars[0].position.x - this.camera.centre.x;
+
     for (var x = 0; x < 257; x++) {
       this.keys[x] = false;
     }
@@ -79,24 +85,17 @@ class Game {
       const rect = _this.canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      if (_this.canvas.style.cursor != "auto") {
-        _this.canvas.style.cursor = "auto";
-      } else _this.canvas.style.cursor = "url('GreenCursor.png'),auto";
       if (
         x >= 0 &&
         y >= 0 &&
         x <= _this.canvas.width &&
         y <= _this.canvas.height
       ) {
-        for (var i = 0; i < _this.cars.length; i++) {
-          if (_this.cars[i].frame.pointWithinRender(new Point(x, y))) {
-            _this.cars[i].select(!_this.cars[i].selected);
-          }
-        }
+        Input.processMouse(_this, new Point(x, y));
       }
     });
 
-    this.keyFunctions = genKeyFunctions();
+    this.keyFunctions = Input.genKeyFunctions();
   }
   keyDown(e) {
     this.keyName = constants.keyCodes[e.keyCode];
@@ -107,6 +106,16 @@ class Game {
       }
     }
     this.keys[e.keyCode] = true;
+  }
+
+  roadCreate(point) {
+    var Point = this.camera.screenToGamePos(point);
+    if (this.road == null) {
+      this.road = new Road(this, [point, point]);
+    } else {
+      this.road.changePoint(point);
+      this.road = null;
+    }
   }
 
   updateDt() {
@@ -124,11 +133,18 @@ class Game {
       this.frames = 0;
     }
   }
-  secondUpdate() {
-    console.log(this.frames);
+  secondUpdate() {}
+
+  changeMouseMode(type) {
+    this.mouseMode = type;
+    this.canvas.style.cursor = constants.mouseModes[type];
   }
 
   update(timestamp) {
+    this.cur = Math.random();
+    if (this.close > this.cur) {
+      this.close = this.cur;
+    }
     this.objects.sort(function(a, b) {
       return a.absPos.z - b.absPos.z;
     });
